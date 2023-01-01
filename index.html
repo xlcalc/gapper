@@ -8,7 +8,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-footer {padding-top:2em}
+body {font-family: sans-serif}
+
+footer {padding-top: 2em}
+
 h1 {
   margin: 0.3em 0;
   text-align: center;
@@ -51,15 +54,13 @@ hr {
 <div>
   <h1>Make gapped texts for vocab learning</h1>
   
-  <div id="tbox" class="text-box" contenteditable="true">You can use this free web tool to create cloze exercises to help students learn vocabulary.
-<br><br>
-Enter or paste a text into this text box, then turn the switch to set gaps and click on the words you wish to gap. Copy the result as plain text or open it in Audiodrill.</div>
+  <div id="tbox" class="text-box" contenteditable="true"></div>
 </div>
 
 <div class="flex-center hmargin-2em">
-  <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Set gaps
+  <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Gap mode
   </div>
-  <div class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
+  <div id="copy-text-btn" class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
   <a id="audiodrill-link" href="https://audiodrill.com?tts-read" target="_blank">Open in Audiodrill</a>
 </div>
 
@@ -80,9 +81,16 @@ const elSel = q => document.querySelector(q);
 const tbox = elSel('.text-box');
 const auLink = elSel('#audiodrill-link');
 const gapSwitch = elSel('#gap-switch');
+const boxPrompt = `
+You can use this free web tool to create cloze exercises to help students learn vocabulary.
+<br><br>
+Enter or paste a text into this text box, then turn the switch to Gap mode and click on the 
+words you wish to gap. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
+`;
 
 document.addEventListener('DOMContentLoaded', event => {
   tbox.focus();
+  tbox.innerHTML = boxPrompt;
 //  addEventListener("selectionchange", handleSel);
 //  setBoxMode(1);
 });
@@ -106,30 +114,49 @@ const setAuLink = () => {
   auLink.setAttribute('href', getAuLink());
 }
 
+const isGapMode = () => elSel('#gap-switch').checked;
 const getBoxMode = () => (tbox.contentEditable === 'true') ? 'EDIT' : 'GAP';
 
-const setBoxMode = v => {
-  if (v) {
-    tbox.classList.add('cursor-def');
-    tbox.innerHTML = tbox.innerHTML
-	  .replace(/&nbsp;/g, ' ') // insterted by Chrome on entering a space
+/*
+const getWordsWrappedOld = s => s .replace(/&nbsp;/g, ' ') // insterted by Chrome on entering a space
 	  .replace(/<div><br><\/div>/g, '::') // empty new line insterted by Chrome on pressing Enter
-	  .replace(/(?<=.)<div>/g, '::') // non-empty new line
+	  .replace(/(?<=.)<div>/g, '::') // non-empty new line (not first line)
 	  .replace(/<div>/g, '')
 	  .replace(/<\/div>/g, '')
-	  .replace(/<br>/g, '::') // how about \n?
+	  .replace(/<br>/g, '::')
+//	  .replace(/\n/g, '\n::')
+	  .replace(/\n/g, '::')
 	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
-	  .replace(/::/g, '<br>');
+	  .replace(/::/g, '<br>'); // restore new line
+*/
+
+const getWordsWrapped = s => s // to be used with .innerText only
+	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
+	  .replace(/\n\n\n/g, '\n\n') // Chrome inserts \n\n on empty line
+	  .replace(/\n/g, '<br>');
+
+
+const setBoxMode = v => {
+  tbox.focus();
+  if (v) {
+    tbox.classList.add('gap-style');
+    tbox.innerHTML = getWordsWrapped(tbox.innerText);
+//    tbox.innerHTML = getWordsWrapped(tbox.textContent);
 //    tbox.innerHTML = textToSpans(tbox); // doesn't work well yet.
 //    tbox.contentEditable = 'false';
 //    setAuLink();
   }
-  else tbox.classList.remove('cursor-def');
+  else {
+    tbox.classList.remove('gap-style');
+	tbox.innerHTML = nodesToText(tbox, 'SCREEN_TEXT');
+//	tbox.textContent = nodesToText(tbox, 'SCREEN_TEXT');
+  }
 //  else tbox.contentEditable = 'true';
 
   setAuLink();
 }
 
+/*
 const textToSpans = (el) => {
   let s = '';
   for (node of el.childNodes) {
@@ -141,13 +168,19 @@ const textToSpans = (el) => {
   }
   return s;
 }
+*/
 
 const nodesToText = (el, mode = '') => {
+// if gaps are off, copy just .innerText for plain text? Or just disable buttons to copy?
   let s = '';
   for (node of el.childNodes) {
     if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode !== 'PLAIN_TEXT')) {
 	  s += '<<' + node.getAttribute('x-gapped') + '>>'
-	} else s += node.textContent;
+	} else if (node.nodeName === 'BR') {
+	  if (mode === 'SCREEN_TEXT') s += '\n<br>';
+	  else s += '\n';
+	}
+	else s += node.textContent;
 	
 //    console.log(s);
   }
@@ -160,13 +193,19 @@ const encode64 = s => btoa(unescape(encodeURIComponent(s)));
 
 const getAuLink = () => 'https://audiodrill.com?tts-read&read-enc=' + encode64(nodesToText(tbox));
 
+/*
 const linkWithKey = key => {
   let url = `https://audiodrill.com?${key}&read-enc=` + encode64(nodesToText(tbox));
 //  if (key === 'tts-read' && ta.splitBy && ta.splitBy !== 'chunks') url += '&split=' + ta.splitBy;
   copyToClipboard(url, linkCopiedMsg);
 }
+*/
 
 const copyPlainText = () => {
+  if (!isGapMode()) {
+    displayMessage('Turn on gap mode before copying');
+    return;
+  }
   const txt = nodesToText(tbox, 'PLAIN_TEXT');
   copyToClipboard(txt, 'Text copied to clipboard');
 }
