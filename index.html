@@ -2,38 +2,214 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Play video fragments to boost listening and pronunciation skills</title>
+<title>Gapped text for vocab learning</title>
 <meta name="description" content="A free tool for language learners to create gapped text.">
 <meta name="keywords" content="gapped, text, language, learners, vocabulary">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+footer {padding-top:2em}
 h1 {
-  text-align: center;
-  color: #555;
   margin: 0.3em 0;
+  text-align: center;
+  font-size: 180%;
+  color: #555;
+}
+
+p {
+  margin: 4px;
+}
+
+hr {
+  border-top: 1px silver solid;
+  margin-bottom: 1em;
 }
 
 .text-box {
+  margin: auto;
+  margin-bottom: 1em;
   height: 400px;
   width: 900px;
   max-width: 75vw;
-  margin: auto;
+  font-size: 20px;
+  overflow-y:auto;
   background-color: #fbfefb; 
-  border: 1px gainsboro solid;
+  border: 1px silver solid;
   outline-color: silver;
+  padding: 2px;
 }
+
 </style>
+
+<link rel="stylesheet" type="text/css" href="main.css">
 
 </head>
 
 <body>
-<div class="row">
+<div class="overlay"></div>
+
+<div>
   <h1>Make gapped texts for vocab learning</h1>
-  <div class="text-box" contenteditable="true">
-    Paste text here
-  </div>
+  
+  <div id="tbox" class="text-box" contenteditable="true">You can use this free web tool to create cloze exercises to help students learn vocabulary.
+<br><br>
+Enter or paste a text into this text box, then turn the switch to set gaps and click on the words you wish to gap. Copy the result as plain text or open it in Audiodrill.</div>
 </div>
+
+<div class="flex-center hmargin-2em">
+  <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Set gaps
+  </div>
+  <div class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
+  <a id="audiodrill-link" href="https://audiodrill.com?tts-read" target="_blank">Open in Audiodrill</a>
+</div>
+
+<footer>
+<hr>
+<div class="flex-center hmargin-2em">
+<!--<p>A free text gapper for <a href="https://audiodrill.com">Audiodrill</a></p>
+-->
+
+<p>Copyright 2022 xlcalc</p>
+<p><a href="https://github.com/xlcalc/gapper">Repo on GitHub</a></p>
+
+</div>
+</footer>
+<script>
+
+const elSel = q => document.querySelector(q);
+const tbox = elSel('.text-box');
+const auLink = elSel('#audiodrill-link');
+const gapSwitch = elSel('#gap-switch');
+
+document.addEventListener('DOMContentLoaded', event => {
+  tbox.focus();
+//  addEventListener("selectionchange", handleSel);
+//  setBoxMode(1);
+});
+
+
+const makeGap = el => {
+  if (!gapSwitch.checked) return;
+  const gapText = el.getAttribute('x-gapped');
+  if (gapText) {
+    el.textContent = gapText;
+	el.removeAttribute('x-gapped');
+  }
+  else {
+    el.setAttribute('x-gapped', el.textContent);
+    el.textContent = '___';
+  }
+  setAuLink();
+}
+
+const setAuLink = () => {
+  auLink.setAttribute('href', getAuLink());
+}
+
+const getBoxMode = () => (tbox.contentEditable === 'true') ? 'EDIT' : 'GAP';
+
+const setBoxMode = v => {
+  if (v) {
+    tbox.classList.add('cursor-def');
+    tbox.innerHTML = tbox.innerHTML
+	  .replace(/&nbsp;/g, ' ') // insterted by Chrome on entering a space
+	  .replace(/<div><br><\/div>/g, '::') // empty new line insterted by Chrome on pressing Enter
+	  .replace(/(?<=.)<div>/g, '::') // non-empty new line
+	  .replace(/<div>/g, '')
+	  .replace(/<\/div>/g, '')
+	  .replace(/<br>/g, '::') // how about \n?
+	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
+	  .replace(/::/g, '<br>');
+//    tbox.innerHTML = textToSpans(tbox); // doesn't work well yet.
+//    tbox.contentEditable = 'false';
+//    setAuLink();
+  }
+  else tbox.classList.remove('cursor-def');
+//  else tbox.contentEditable = 'true';
+
+  setAuLink();
+}
+
+const textToSpans = (el) => {
+  let s = '';
+  for (node of el.childNodes) {
+    if (node.nodeName === '#text') {
+	  s += node.textContent. replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>');
+	} else s += node.innerHTML;
+	
+    console.log(s);
+  }
+  return s;
+}
+
+const nodesToText = (el, mode = '') => {
+  let s = '';
+  for (node of el.childNodes) {
+    if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode !== 'PLAIN_TEXT')) {
+	  s += '<<' + node.getAttribute('x-gapped') + '>>'
+	} else s += node.textContent;
+	
+//    console.log(s);
+  }
+  return s;
+}
+
+const linkCopiedMsg = 'Link copied to clipboard';
+
+const encode64 = s => btoa(unescape(encodeURIComponent(s)));
+
+const getAuLink = () => 'https://audiodrill.com?tts-read&read-enc=' + encode64(nodesToText(tbox));
+
+const linkWithKey = key => {
+  let url = `https://audiodrill.com?${key}&read-enc=` + encode64(nodesToText(tbox));
+//  if (key === 'tts-read' && ta.splitBy && ta.splitBy !== 'chunks') url += '&split=' + ta.splitBy;
+  copyToClipboard(url, linkCopiedMsg);
+}
+
+const copyPlainText = () => {
+  const txt = nodesToText(tbox, 'PLAIN_TEXT');
+  copyToClipboard(txt, 'Text copied to clipboard');
+}
+
+const sleep = time => new Promise(resolve => setTimeout(resolve, time));
+
+async function displayOverlay(msg='', intervalMsec, task) {
+  const overlay = document.querySelector(".overlay");
+  const closeBtn = '<div class="close-x btn" onclick="hitStopButton()">&times;</div>';
+  overlay.style.display = msg ? "inline-block" : "none";
+
+  msg += closeBtn;
+  switch (task) {
+    case 'clear after':
+      overlay.innerHTML = msg;
+      await sleep(intervalMsec);
+      displayOverlay("");
+      break;
+
+    default:
+      overlay.innerHTML = msg;
+  }
+}
+
+const displayMessage = txt => { displayOverlay(txt, 2700, 'clear after'); }
+
+const copyToClipboard = (txt, msg) => {
+  navigator.clipboard.writeText(txt).then(
+    () => { displayMessage(msg) },
+    () => { displayMessage('Clipboard write failed') }
+  );
+}
+
+</script>
 
 </body>
 </html>
+
+<!--
+BUGS:
+- half fixed? more tests needed: line breaks in the text are lost when regime is changed 
+- line breaks disappear when the text is opened in Audiodrill.
+
+- the text crashes when the switch is turned on and off twice.
+
+-->

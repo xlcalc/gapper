@@ -1,0 +1,126 @@
+/* slider switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width:1.7em;
+  height: 0.75em;
+  vertical-align: middle;
+}
+
+.switch input { 
+  width: 0;
+  height: 0;
+/*for Safari*/
+  position: absolute;
+  top: -0.2em;
+}
+
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .3s;
+  transition: .3s;
+}
+
+.slider:hover {
+  background-color: #bbb;
+}
+
+.slider:before {
+  content: "";
+  height: 0.65em;
+  width: 0.65em;
+  float:left;
+  background-color: #eee;
+  -webkit-transition: .3s;
+  transition: .3s;
+position:relative;
+top:-0.05em;
+border: 0.1em solid #eee;
+box-shadow: 0 0 0.1em #666;
+}
+
+.slider:hover:before {
+  background-color: #e7e7e7;
+  border-color: #e7e7e7;
+}
+
+input:checked + .slider:before {
+  float:right;
+  box-shadow: 0 0 0.1em #269;
+}
+
+input:checked + .slider {
+  background-color: #17e;
+}
+
+input:checked + .slider:hover {
+  background-color: #06d;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #28e;
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 0.5em;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hmargin-2em > a, .hmargin-2em > div, .hmargin-2em > p {margin: 0 2em}
+
+.btn-darker {
+  padding: 0.3em 0.5em;
+  border: 1px solid silver;
+  border-radius: 6px;
+}
+
+.btn-darker:hover {
+  backdrop-filter: brightness(0.95);
+  cursor: pointer;
+}
+.btn-darker:active { backdrop-filter: brightness(0.92) } 
+
+.overlay {
+  position: fixed;
+  height: 2em;
+  width: 20em;
+  top: calc(85vh - (/* height */2em / 2));
+  left: calc(50vw - (/* width */22em / 2)); 
+
+  padding: 1em 1em 0 1em;
+border-radius: 50px;
+border: solid 1px lightgray;
+box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 20px 0 rgba(0, 0, 0, 0.19);
+  background-color: lightgray;
+  color: DarkSlateGray;
+  opacity: 0.9;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 2;
+  font-size: 20px;
+}
+.close-x {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+}
+
+.cursor-def {cursor:default}
