@@ -82,7 +82,7 @@ input:focus + .slider {
   flex-wrap: wrap;
 }
 
-.hmargin-2em > a, .hmargin-2em > div, .hmargin-2em > p {margin: 0 2em}
+.margins-1-2 > a, .margins-1-2 > div, .margins-1-2 > p {margin: 1em 2em}
 
 .btn-darker {
   padding: 0.3em 0.5em;

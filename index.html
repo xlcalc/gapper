@@ -11,8 +11,6 @@
 <style>
 body {font-family: sans-serif}
 
-footer {padding-top: 2em}
-
 h1 {
   margin: 0.3em 0;
   text-align: center;
@@ -20,18 +18,12 @@ h1 {
   color: #555;
 }
 
-p {
-  margin: 4px;
-}
-
 hr {
   border-top: 1px silver solid;
-  margin-bottom: 1em;
 }
 
 .text-box {
   margin: auto;
-  margin-bottom: 1em;
   height: 400px;
   width: 900px;
   max-width: 75vw;
@@ -52,13 +44,10 @@ hr {
 <body>
 <div class="overlay"></div>
 
-<div>
-  <h1>Make gapped texts for vocab learning</h1>
-  
-  <div id="tbox" class="text-box" contenteditable="true"></div>
-</div>
+<h1>Make gapped texts for vocab learning</h1>
+<div id="tbox" class="text-box" contenteditable="true"></div>
 
-<div class="flex-center hmargin-2em">
+<div class="flex-center margins-1-2">
   <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Gap mode
   </div>
   <div id="copy-text-btn" class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
@@ -67,7 +56,7 @@ hr {
 
 <footer>
 <hr>
-<div class="flex-center hmargin-2em">
+<div class="flex-center margins-1-2">
 <!--<p>A free text gapper for <a href="https://audiodrill.com">Audiodrill</a></p>
 -->
 
@@ -87,7 +76,7 @@ const boxPrompt = `
 You can use this free web tool to create cloze exercises to help students learn vocabulary.
 <br><br>
 Enter or paste a text into this text box, then switch from Edit to Gap mode and click on the 
-words you wish to gap. Or select part of the word to gap only this part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
+words you wish to gap. Or select part of the word to gap just that part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
 `;
 
 document.addEventListener('DOMContentLoaded', event => {
@@ -127,20 +116,6 @@ const setAuLink = () => {
 }
 
 const isGapMode = () => elSel('#gap-switch').checked;
-//const getBoxMode = () => (tbox.contentEditable === 'true') ? 'EDIT' : 'GAP';
-
-/*
-const getWordsWrappedOld = s => s .replace(/&nbsp;/g, ' ') // insterted by Chrome on entering a space
-	  .replace(/<div><br><\/div>/g, '::') // empty new line insterted by Chrome on pressing Enter
-	  .replace(/(?<=.)<div>/g, '::') // non-empty new line (not first line)
-	  .replace(/<div>/g, '')
-	  .replace(/<\/div>/g, '')
-	  .replace(/<br>/g, '::')
-//	  .replace(/\n/g, '\n::')
-	  .replace(/\n/g, '::')
-	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
-	  .replace(/::/g, '<br>'); // restore new line
-*/
 
 const getWordsWrapped = s => s // to be used with .innerText only
 	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
@@ -153,34 +128,13 @@ const setBoxMode = v => {
   if (v) {
     tbox.classList.add('gap-style');
     tbox.innerHTML = getWordsWrapped(tbox.innerText);
-//    tbox.innerHTML = getWordsWrapped(tbox.textContent);
-//    tbox.innerHTML = textToSpans(tbox); // doesn't work well yet.
-//    tbox.contentEditable = 'false';
-//    setAuLink();
   }
   else {
     tbox.classList.remove('gap-style');
 	tbox.innerHTML = nodesToText(tbox, 'SCREEN_TEXT');
-//	tbox.textContent = nodesToText(tbox, 'SCREEN_TEXT');
   }
-//  else tbox.contentEditable = 'true';
-
   setAuLink();
 }
-
-/*
-const textToSpans = (el) => {
-  let s = '';
-  for (node of el.childNodes) {
-    if (node.nodeName === '#text') {
-	  s += node.textContent. replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>');
-	} else s += node.innerHTML;
-	
-    console.log(s);
-  }
-  return s;
-}
-*/
 
 const nodesToText = (el, mode = '') => {
 // if gaps are off, copy just .innerText for plain text? Or just disable buttons to copy?
@@ -195,8 +149,6 @@ const nodesToText = (el, mode = '') => {
 	  if (mode === 'SCREEN_TEXT') s += '\n<br>';
 	  else s += '\n';
 	} else s += node.textContent;
-	
-//    console.log(s);
   }
   return s;
 }
@@ -206,14 +158,6 @@ const linkCopiedMsg = 'Link copied to clipboard';
 const encode64 = s => btoa(unescape(encodeURIComponent(s)));
 
 const getAuLink = () => 'https://audiodrill.com?tts-read&read-enc=' + encode64(nodesToText(tbox));
-
-/*
-const linkWithKey = key => {
-  let url = `https://audiodrill.com?${key}&read-enc=` + encode64(nodesToText(tbox));
-//  if (key === 'tts-read' && ta.splitBy && ta.splitBy !== 'chunks') url += '&split=' + ta.splitBy;
-  copyToClipboard(url, linkCopiedMsg);
-}
-*/
 
 const copyPlainText = () => {
   if (!isGapMode()) {
@@ -260,9 +204,5 @@ const copyToClipboard = (txt, msg) => {
 
 <!--
 BUGS:
-- half fixed? more tests needed: line breaks in the text are lost when regime is changed 
-- line breaks disappear when the text is opened in Audiodrill.
-
-- the text crashes when the switch is turned on and off twice.
 
 -->
