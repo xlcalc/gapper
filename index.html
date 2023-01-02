@@ -78,6 +78,7 @@ hr {
 </footer>
 <script>
 
+const gapText = '___';
 const elSel = q => document.querySelector(q);
 const tbox = elSel('.text-box');
 const auLink = elSel('#audiodrill-link');
@@ -85,8 +86,8 @@ const gapSwitch = elSel('#gap-switch');
 const boxPrompt = `
 You can use this free web tool to create cloze exercises to help students learn vocabulary.
 <br><br>
-Enter or paste a text into this text box, then turn the switch to Gap mode and click on the 
-words you wish to gap. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
+Enter or paste a text into this text box, then switch from Edit to Gap mode and click on the 
+words you wish to gap. Or select part of the word to gap only this part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
 `;
 
 document.addEventListener('DOMContentLoaded', event => {
@@ -99,14 +100,24 @@ document.addEventListener('DOMContentLoaded', event => {
 
 const makeGap = el => {
   if (!gapSwitch.checked) return;
-  const gapText = el.getAttribute('x-gapped');
-  if (gapText) {
-    el.textContent = gapText;
+  const gapped = el.getAttribute('x-gapped');
+  if (gapped) {
+    el.textContent = gapped;
 	el.removeAttribute('x-gapped');
   }
   else {
+    const sel = window.getSelection();
+//  const txt = sel.toString();
+    const start = sel.anchorOffset;
+    const end = sel.focusOffset;
+    const txt = el.textContent;
+
     el.setAttribute('x-gapped', el.textContent);
-    el.textContent = '___';
+//    el.textContent = gapText;
+
+    if (start < end) el.textContent = txt.substring(0, start) + gapText + txt.substring(end);
+    if (start > end) el.textContent = txt.substring(0, end) + gapText + txt.substring(start);
+    if (start === end) el.textContent = gapText;
   }
   setAuLink();
 }
@@ -116,7 +127,7 @@ const setAuLink = () => {
 }
 
 const isGapMode = () => elSel('#gap-switch').checked;
-const getBoxMode = () => (tbox.contentEditable === 'true') ? 'EDIT' : 'GAP';
+//const getBoxMode = () => (tbox.contentEditable === 'true') ? 'EDIT' : 'GAP';
 
 /*
 const getWordsWrappedOld = s => s .replace(/&nbsp;/g, ' ') // insterted by Chrome on entering a space
@@ -175,13 +186,15 @@ const nodesToText = (el, mode = '') => {
 // if gaps are off, copy just .innerText for plain text? Or just disable buttons to copy?
   let s = '';
   for (node of el.childNodes) {
-    if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode !== 'PLAIN_TEXT')) {
-	  s += '<<' + node.getAttribute('x-gapped') + '>>'
+    if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode === 'SCREEN_TEXT')) {
+	  s += node.textContent;
+	} else if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode !== 'PLAIN_TEXT')) {
+      const addText = (node.textContent === gapText) ? '' : '=>' + node.textContent;
+      s += '<<' + node.getAttribute('x-gapped') + addText + '>>'
 	} else if (node.nodeName === 'BR') {
 	  if (mode === 'SCREEN_TEXT') s += '\n<br>';
 	  else s += '\n';
-	}
-	else s += node.textContent;
+	} else s += node.textContent;
 	
 //    console.log(s);
   }
