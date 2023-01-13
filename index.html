@@ -50,6 +50,11 @@ hr {
 <div class="flex-center margins-1-2">
   <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Gap mode
   </div>
+  <div title="Number of first characters to keep in the gap (0-3)" > Keep
+<label><input type="number" id="kept-chars" style="width: 2em; height: 1em;"  
+   min="0" max="3" value="0" />
+</label> first chars
+  </div>
   <div id="copy-text-btn" class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
   <a id="audiodrill-link" href="https://audiodrill.com?tts-read" target="_blank">Open in Audiodrill</a>
 </div>
@@ -60,7 +65,7 @@ hr {
 <!--<p>A free text gapper for <a href="https://audiodrill.com">Audiodrill</a></p>
 -->
 
-<p>Copyright 2022 xlcalc</p>
+<p>Copyright 2023 Audiodrill</p>
 <p><a href="https://github.com/xlcalc/gapper">Repo on GitHub</a></p>
 
 </div>
@@ -76,7 +81,7 @@ const boxPrompt = `
 You can use this free web tool to create cloze exercises to help students learn vocabulary.
 <br><br>
 Enter or paste a text into this text box, then switch from Edit to Gap mode and click on the 
-words you wish to gap. Or select part of the word to gap just that part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
+words you wish to gap. You can set the number of first characters to keep in the gap - or select part of the word to gap just that part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
 `;
 
 document.addEventListener('DOMContentLoaded', event => {
@@ -91,22 +96,23 @@ const makeGap = el => {
   if (!gapSwitch.checked) return;
   const gapped = el.getAttribute('x-gapped');
   if (gapped) {
-    el.textContent = gapped;
+    el.textContent = gapped.split('=>')[0];
 	el.removeAttribute('x-gapped');
   }
   else {
     const sel = window.getSelection();
-//  const txt = sel.toString();
     const start = sel.anchorOffset;
     const end = sel.focusOffset;
     const txt = el.textContent;
-
-    el.setAttribute('x-gapped', el.textContent);
-//    el.textContent = gapText;
+	const keptChars = txt.substring(0, elSel('#kept-chars').value);
+    let gapAttr = el.textContent;
+	if (keptChars) gapAttr += '=>' + keptChars + gapText;
+//console.log('Gap attr', gapAttr);
+    el.setAttribute('x-gapped', gapAttr);
 
     if (start < end) el.textContent = txt.substring(0, start) + gapText + txt.substring(end);
     if (start > end) el.textContent = txt.substring(0, end) + gapText + txt.substring(start);
-    if (start === end) el.textContent = gapText;
+    if (start === end) el.textContent = keptChars + gapText;
   }
   setAuLink();
 }
