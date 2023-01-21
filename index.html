@@ -82,6 +82,10 @@ You can use this free web tool to create cloze exercises to help students learn 
 <br><br>
 Enter or paste a text into this text box, then switch from Edit to Gap mode and click on the 
 words you wish to gap. You can set the number of first characters to keep in the gap - or select part of the word to gap just that part. To undo the gap, click on it again. Copy the result as plain text or open it in Audiodrill.
+<br><br>
+in addition, sentences are capitalized when you switch to Gap mode 
+just add full stops in this paragraph and try it out 
+this feature is useful when you edit automatic video trancripts
 `;
 
 document.addEventListener('DOMContentLoaded', event => {
@@ -123,7 +127,8 @@ const setAuLink = () => {
 
 const isGapMode = () => elSel('#gap-switch').checked;
 
-const getWordsWrapped = s => s // to be used with .innerText only
+const textToNodes = s => s // to be used with .innerText only
+      .replace(/[\.\!\?]['"]?\s+\w/g, s => s.toUpperCase()) // capicalize after punctuation + space
 	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
 	  .replace(/\n\n\n/g, '\n\n') // Chrome inserts \n\n on empty line
 	  .replace(/\n/g, '<br>');
@@ -133,7 +138,7 @@ const setBoxMode = v => {
   tbox.focus();
   if (v) {
     tbox.classList.add('gap-style');
-    tbox.innerHTML = getWordsWrapped(tbox.innerText);
+    tbox.innerHTML = textToNodes(tbox.innerText);
   }
   else {
     tbox.classList.remove('gap-style');
@@ -210,5 +215,5 @@ const copyToClipboard = (txt, msg) => {
 
 <!--
 BUGS:
-
+Future plans:
 -->
