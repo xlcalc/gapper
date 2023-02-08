@@ -62,20 +62,16 @@ hr {
 <footer>
 <hr>
 <div class="flex-center margins-1-2">
-<!--<p>A free text gapper for <a href="https://audiodrill.com">Audiodrill</a></p>
--->
-
-<p>Copyright 2023 Audiodrill</p>
-<p><a href="https://github.com/xlcalc/gapper">Repo on GitHub</a></p>
-
+  <p>Copyright 2023 Audiodrill</p>
+  <p><a href="https://github.com/xlcalc/gapper">Repo on GitHub</a></p>
 </div>
 </footer>
+
 <script>
 
-const gapText = '___';
+const emptyGapText = '___';
 const elSel = q => document.querySelector(q);
 const tbox = elSel('.text-box');
-const auLink = elSel('#audiodrill-link');
 const gapSwitch = elSel('#gap-switch');
 const boxPrompt = `
 You can use this free web tool to create cloze exercises to help students learn vocabulary.
@@ -92,7 +88,6 @@ document.addEventListener('DOMContentLoaded', event => {
   tbox.focus();
   tbox.innerHTML = boxPrompt;
 //  addEventListener("selectionchange", handleSel);
-//  setBoxMode(1);
 });
 
 
@@ -101,6 +96,7 @@ const makeGap = el => {
   const gapped = el.getAttribute('x-gapped');
   if (gapped) {
     el.textContent = gapped.split('=>')[0];
+	el.removeAttribute('title');
 	el.removeAttribute('x-gapped');
   }
   else {
@@ -109,30 +105,25 @@ const makeGap = el => {
     const end = sel.focusOffset;
     const txt = el.textContent;
 	const keptChars = txt.substring(0, elSel('#kept-chars').value);
-    let gapAttr = el.textContent;
-	if (keptChars) gapAttr += '=>' + keptChars + gapText;
-//console.log('Gap attr', gapAttr);
+    let gapAttr = txt;
+	if (keptChars) gapAttr += '=>' + keptChars + emptyGapText;
     el.setAttribute('x-gapped', gapAttr);
+    el.setAttribute('title', txt);
 
-    if (start < end) el.textContent = txt.substring(0, start) + gapText + txt.substring(end);
-    if (start > end) el.textContent = txt.substring(0, end) + gapText + txt.substring(start);
-    if (start === end) el.textContent = keptChars + gapText;
+    if (start < end) el.textContent = txt.substring(0, start) + emptyGapText + txt.substring(end);
+    if (start > end) el.textContent = txt.substring(0, end) + emptyGapText + txt.substring(start);
+    if (start === end) el.textContent = keptChars + emptyGapText;
   }
   setAuLink();
 }
 
 const setAuLink = () => {
+  const encode64 = s => btoa(unescape(encodeURIComponent(s)));
+  const getAuLink = () => 'https://audiodrill.com?tts-read&read-enc=' + encode64(nodesToText(tbox));
+  const auLink = elSel('#audiodrill-link');
+
   auLink.setAttribute('href', getAuLink());
 }
-
-const isGapMode = () => elSel('#gap-switch').checked;
-
-const textToNodes = s => s // to be used with .innerText only
-      .replace(/[\.\!\?]['"]?\s+\w/g, s => s.toUpperCase()) // capicalize after punctuation + space
-	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
-	  .replace(/\n\n\n/g, '\n\n') // Chrome inserts \n\n on empty line
-	  .replace(/\n/g, '<br>');
-
 
 const setBoxMode = v => {
   tbox.focus();
@@ -147,6 +138,15 @@ const setBoxMode = v => {
   setAuLink();
 }
 
+const isGapMode = () => elSel('#gap-switch').checked;
+
+const textToNodes = s => s // to be used with .innerText only
+      .replace(/[\.\!\?]['"]?\s+\w/g, s => s.toUpperCase()) // capicalize after punctuation + space
+	  .replace(/\w+/g, s=>'<span onclick="makeGap(this)">'+s+'</span>')
+	  .replace(/\n\n\n/g, '\n\n') // Chrome inserts \n\n on empty line
+	  .replace(/\n/g, '<br>');
+
+
 const nodesToText = (el, mode = '') => {
 // if gaps are off, copy just .innerText for plain text? Or just disable buttons to copy?
   let s = '';
@@ -154,7 +154,7 @@ const nodesToText = (el, mode = '') => {
     if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode === 'SCREEN_TEXT')) {
 	  s += node.textContent;
 	} else if ((node.nodeName === 'SPAN') && (node.getAttribute('x-gapped')) && (mode !== 'PLAIN_TEXT')) {
-      const addText = (node.textContent === gapText) ? '' : '=>' + node.textContent;
+      const addText = (node.textContent === emptyGapText) ? '' : '=>' + node.textContent;
       s += '<<' + node.getAttribute('x-gapped') + addText + '>>'
 	} else if (node.nodeName === 'BR') {
 	  if (mode === 'SCREEN_TEXT') s += '\n<br>';
@@ -164,11 +164,7 @@ const nodesToText = (el, mode = '') => {
   return s;
 }
 
-const linkCopiedMsg = 'Link copied to clipboard';
-
-const encode64 = s => btoa(unescape(encodeURIComponent(s)));
-
-const getAuLink = () => 'https://audiodrill.com?tts-read&read-enc=' + encode64(nodesToText(tbox));
+//const linkCopiedMsg = 'Link copied to clipboard';
 
 const copyPlainText = () => {
   if (!isGapMode()) {
@@ -214,6 +210,6 @@ const copyToClipboard = (txt, msg) => {
 </html>
 
 <!--
-BUGS:
+BUGS: selecting several words
 Future plans:
 -->
