@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0064)file:///C:/Users/dzrab/Documents/audiodrill/3.gapper/gapper.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <title>Gapped text for vocab learning</title>
 <meta name="description" content="A free tool for language learners to create gapped text.">
 <meta name="keywords" content="gapped, text, language, learners, vocabulary">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="./icon.png">
+<link rel="icon" href="file:///C:/Users/dzrab/Documents/audiodrill/3.gapper/icon.png">
 
 <style>
 body {font-family: sans-serif}
@@ -22,11 +22,14 @@ hr {
   border-top: 1px silver solid;
 }
 
-.text-box {
+.text-container {
   margin: auto;
   height: 400px;
   width: 900px;
   max-width: 75vw;
+}
+.text-box {
+  height: 380px;
   font-size: 20px;
   overflow-y:auto;
   background-color: #fbfefb; 
@@ -35,9 +38,14 @@ hr {
   padding: 2px;
 }
 
+.txt-info {
+  font-size: 12px;
+  color: #555;
+}
+
 </style>
 
-<link rel="stylesheet" type="text/css" href="main.css">
+<link rel="stylesheet" type="text/css" href="./Gapped text for vocab learning_files/main.css">
 
 </head>
 
@@ -45,18 +53,20 @@ hr {
 <div class="overlay"></div>
 
 <h1>Make gapped texts for vocab learning</h1>
-<div id="tbox" class="text-box" contenteditable="true"></div>
+<div id="txt-container" class="text-container">
+  <div id="tbox" class="text-box" contenteditable="true">a<div><br></div><div>the</div></div>
+  <div id="tbox-info" class="txt-info">4 characters, 1 word</div>
+</div>
 
 <div class="flex-center margins-1-2">
-  <div>Edit <label class='switch'><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class='slider round'></span></label> Gap mode
+  <div>Edit <label class="switch"><input id="gap-switch" type="checkbox" onchange="setBoxMode(this.checked)"><span class="slider round"></span></label> Gap mode
   </div>
-  <div title="Number of first characters to keep in the gap (0-3)" > Keep
-<label><input type="number" id="kept-chars" style="width: 2em; height: 1em;"  
-   min="0" max="3" value="0" />
+  <div title="Number of first characters to keep in the gap (0-3)"> Keep
+<label><input type="number" id="kept-chars" style="width: 2em; height: 1em;" min="0" max="3" value="0">
 </label> first chars
   </div>
   <div id="copy-text-btn" class="btn-darker" onclick="copyPlainText()">Copy plain text</div>
-  <a id="audiodrill-link" href="https://audiodrill.com?tts-read" target="_blank">Open in Audiodrill</a>
+  <a id="audiodrill-link" href="https://audiodrill.com/?tts-read" target="_blank">Open in Audiodrill</a>
 </div>
 
 <footer>
@@ -87,9 +97,20 @@ this is useful when you edit automatic video trancripts
 document.addEventListener('DOMContentLoaded', event => {
   tbox.focus();
   tbox.innerHTML = boxPrompt;
+  tbox.oninput = handleOnInput;
+  handleOnInput();
 //  addEventListener("selectionchange", handleSel);
 });
 
+function handleOnInput() {
+  const txt = tbox.innerText.replace(/\s+/g, ' ');
+  const chars = txt.length === 1 ? 'character' : 'characters';
+  const wordCount = (txt.match(/[\p{L}\p{N}’'-]+/gu) || []).length;
+  const words = wordCount === 1 ? 'word' : 'words';
+  
+  const msg = `${txt.length} ${chars}, ${wordCount} ${words}`;
+  elSel('.txt-info').innerHTML = msg;
+}
 
 const makeGap = el => {
   if (!gapSwitch.checked) return;
@@ -115,6 +136,7 @@ const makeGap = el => {
     if (start === end) el.textContent = keptChars + emptyGapText;
   }
   setAuLink();
+  handleOnInput();
 }
 
 const setAuLink = () => {
@@ -205,11 +227,4 @@ const copyToClipboard = (txt, msg) => {
 }
 
 </script>
-
-</body>
-</html>
-
-<!--
-BUGS: selecting several words
-Future plans:
--->
+</body></html>
