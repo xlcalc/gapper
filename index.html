@@ -103,7 +103,8 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 
 function handleOnInput() {
-  const txt = tbox.innerText.replace(/\s+/g, ' ');
+  let txt = tbox.innerText.replace(/\s+/g, ' ');
+  if (tbox.innerText === '\n') txt = '';
   const chars = txt.length === 1 ? 'character' : 'characters';
   const wordCount = (txt.match(/[\p{L}\p{N}’'-]+/gu) || []).length;
   const words = wordCount === 1 ? 'word' : 'words';
