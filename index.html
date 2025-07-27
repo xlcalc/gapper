@@ -148,11 +148,17 @@ const setAuLink = () => {
   auLink.setAttribute('href', getAuLink());
 }
 
+const processText = s => s.replace(/\r/g, '')
+    .replace(/\n\n/g, '{PARA}')
+    .replace(/ ?\n/g, ' ')
+    .replace(/{PARA}/g, '\n\n');
+
 const setBoxMode = v => {
   tbox.focus();
   if (v) {
     tbox.classList.add('gap-style');
-    tbox.innerHTML = textToNodes(tbox.innerText);
+    const txt = processText(tbox.innerText);
+    tbox.innerHTML = textToNodes(txt);
   }
   else {
     tbox.classList.remove('gap-style');
