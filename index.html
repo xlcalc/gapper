@@ -148,9 +148,11 @@ const setAuLink = () => {
 }
 
 const processText = s => s.replace(/\r/g, '')
-    .replace(/\n\n/g, '{PARA}')
-    .replace(/ ?\n/g, ' ')
-    .replace(/{PARA}/g, '\n\n');
+    .replace(/[\x20\xA0\n]\n/g, '{PARA}')
+    .replace(/\n/g, ' ')
+    .replace(/{PARA}/g, '\n\n')
+    .replace(/[\.\!\?]['"]?\s+\w/g, s => s.toUpperCase()) // capicalize after punctuation + space
+;
 
 const setBoxMode = v => {
   tbox.focus();
